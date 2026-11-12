@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Frequência">
+<meta name="theme-color" content="#0a6f8a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Frequência da Natação</title>
+<style>
+:root{--bg:#eef6f8;--fg:#0d2b3a;--card:#fff;--mut:#5b7583;--ac:#0a6f8a;--acfg:#fff;--bd:#cfe0e6;--sel:#d6eef4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1a22;--fg:#e4f1f5;--card:#12272f;--mut:#8fa9b5;--ac:#3cc0dc;--acfg:#06212a;--bd:#23404a;--sel:#17414d}}
+:root[data-theme="dark"]{--bg:#0b1a22;--fg:#e4f1f5;--card:#12272f;--mut:#8fa9b5;--ac:#3cc0dc;--acfg:#06212a;--bd:#23404a;--sel:#17414d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0 auto;background:var(--bg);color:var(--fg);font:16px/1.4 "Avenir Next",system-ui,-apple-system,"Segoe UI",sans-serif;max-width:760px;padding:12px 14px 40px}
+h1{font-size:22px;margin:6px 0 10px}
+nav{display:flex;gap:6px;margin-bottom:14px}
+nav button{flex:1;padding:10px 2px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:10px;font:inherit;font-size:14px}
+nav button.on{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:600}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px;width:100%}
+.row{display:flex;gap:8px;align-items:center}
+.btn{padding:9px 12px;border:1px solid var(--ac);background:var(--ac);color:var(--acfg);border-radius:8px;font:inherit;font-weight:600}
+.btn.ghost{background:transparent;color:var(--ac)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.name{font-weight:600;margin-bottom:8px}
+.brg{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:8px}
+.brg button{padding:8px 0;border:1px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:8px;font:inherit;font-size:14px}
+.brg button.on{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
+.det{margin-top:6px;border-top:1px solid var(--bd);padding-top:10px}
+.lnk{background:none;border:0;color:var(--ac);font:inherit;font-size:14px;padding:8px 0 0}
+.spark{display:flex;align-items:flex-end;gap:3px;height:60px}
+.spark i{flex:1;background:var(--ac);border-radius:2px 2px 0 0;min-width:4px}
+.wrap{white-space:normal;text-align:left;min-width:150px}
+.sym{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.sym button{padding:8px 0;font-size:18px;border:1px solid var(--bd);background:var(--bg);border-radius:8px}
+.sym button.on{background:var(--sel);border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
+.mut{color:var(--mut);font-size:14px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--mut);margin:8px 0 12px}
+.rk{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.rk:last-child{border:0}
+.pos{width:34px;text-align:center;font-weight:700;font-size:18px}
+.pct{margin-left:auto;font-weight:700;font-size:18px;color:var(--ac)}
+.bar{height:6px;background:var(--bd);border-radius:3px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac)}
+.grow{flex:1;min-width:0}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px}
+table{border-collapse:collapse;font-size:13px}
+td,th{padding:7px 5px;text-align:center;border-bottom:1px solid var(--bd);white-space:nowrap}
+.fx{position:sticky;left:0;background:var(--card);text-align:left;font-weight:600;max-width:105px;overflow:hidden;text-overflow:ellipsis;border-right:1px solid var(--bd)}
+.good{color:#1a8a4a}.bad{color:#c0392b}
+@media (prefers-color-scheme:dark){.good{color:#5fd38d}.bad{color:#ff8a80}}
+</style>
+</head>
+<body>
+<h1>🏊 Frequência da equipe</h1>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+var SYM={C:['✅','Completo'],I:['🟡','Incompleto'],F:['❌','Falta'],P:['🏆','Competição'],D:['💤','Descanso'],H:['🎉','Feriado'],S:['🤒','Doença/lesão']};
+var KEYS=Object.keys(SYM);
+var COL={C:[.62,.85,.66],I:[.99,.9,.5],F:[.96,.6,.6],P:[.6,.78,.96],D:[.85,.85,.85],H:[.8,.7,.9],S:[.98,.75,.55]};
+var S={a:[],r:{}};
+try{var raw=localStorage.getItem('freq-natacao');if(raw){S=JSON.parse(raw)}}catch(e){}
+S.n=S.n||{};S.p=S.p||[];migE();
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+try{if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}
+function save(){try{localStorage.setItem('freq-natacao',JSON.stringify(S))}catch(e){}}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function p2(n){return String(n).padStart(2,'0')}
+function ds(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function pd(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
+function fp(p){return p===null?'-':p.toFixed(1).replace('.',',')+'%'}
+function cut(s,n){return s.length>n?s.slice(0,n-1)+'.':s}
+var tab='chamada',date=ds(new Date()),per='ano',year=new Date().getFullYear(),mon=date.slice(0,7),openId=null,viewId=null,backTab='atletas';
+var BL=['','Muito leve','Leve','Moderado','Um pouco forte','Forte','Forte','Muito forte','Muito forte','Quase máximo','Máximo'];
+var TABS=[['chamada','Chamada'],['tabela','Tabela'],['rank','Ranking'],['provas','Provas'],['atletas','Atletas']];
+
+function shift(n){var d=pd(date);d.setDate(d.getDate()+n);date=ds(d);render()}
+function setCode(id,k){var d=S.r[date]||(S.r[date]={});if(d[id]===k)delete d[id];else d[id]=k;if(!Object.keys(d).length)delete S.r[date];save();render()}
+function markAll(k){if(!S.a.length)return;var d=S.r[date]=S.r[date]||{};S.a.forEach(function(a){if(k!=='C'||!d[a.id])d[a.id]=k});save();render()}
+function getN(dt,id){return (S.n[dt]||{})[id]||{}}
+function putN(dt,id,f,v){var d=S.n[dt]||(S.n[dt]={}),e=d[id]||(d[id]={});if(v===null||v===undefined)delete e[f];else e[f]=v;if(!Object.keys(e).length)delete d[id];if(!Object.keys(d).length)delete S.n[dt];save()}
+function setBorg(id,v){putN(date,id,'b',getN(date,id).b===v?null:v);render()}
+function setObs(id,v){putN(date,id,'o',v.trim()===''?null:v)}
+function toggle(id){openId=openId===id?null:id;render()}
+function openAthlete(id){viewId=id;backTab=tab;tab='atleta';render()}
+function detPanel(a){
+  var n=getN(date,a.id),o=openId===a.id,t='';
+  t+='<button class="lnk" onclick="toggle(\''+a.id+'\')">'+(o?'▾':'▸')+' Esforço e observação'+(n.b?' (Borg '+n.b+')':'')+(n.o?' 📝':'')+'</button>';
+  if(o){
+    t+='<div class="det"><div class="mut">Percepção de esforço (Borg 1–10)'+(n.b?': <b>'+BL[n.b]+'</b>':'')+'</div><div class="brg">';
+    for(var i=1;i<=10;i++)t+='<button class="'+(n.b===i?'on':'')+'" onclick="setBorg(\''+a.id+'\','+i+')">'+i+'</button>';
+    t+='</div><textarea rows="2" style="margin-top:10px" placeholder="Observações do treino (como se sentiu, se passou mal, qual lesão...)" oninput="setObs(\''+a.id+'\',this.value)">'+esc(n.o||'')+'</textarea></div>';
+  }
+  return t;
+}
+function perOpts(){return [['ano','Ano inteiro'],['1','1º trimestre (jan–mar)'],['2','2º trimestre (abr–jun)'],['3','3º trimestre (jul–set)'],['4','4º trimestre (out–dez)']].map(function(p){return '<option value="'+p[0]+'"'+(per===p[0]?' selected':'')+'>'+p[1]+'</option>'}).join('')}
+function histRows(id){
+  var u={};Object.keys(S.r).concat(Object.keys(S.n)).forEach(function(d){u[d]=1});
+  return Object.keys(u).filter(function(d){return inPer(d)}).sort().map(function(dt){var n=(S.n[dt]||{})[id]||{};return {dt:dt,k:(S.r[dt]||{})[id],b:n.b,o:n.o}}).filter(function(e){return e.k||e.b||e.o});
+}
+function athleteView(){
+  var a=S.a.find(function(x){return x.id===viewId});if(!a){tab='atletas';return ''}
+  var r=stats(inPer).filter(function(x){return x.a.id===a.id})[0],ev=histRows(a.id);
+  var h='<div class="row" style="margin-bottom:10px"><button class="btn ghost" onclick="tab=backTab;render()">‹ Voltar</button><div class="name grow" style="margin:0;font-size:18px">'+esc(a.name)+'</div><button class="btn" onclick="pdfAthlete()">PDF</button></div>';
+  h+='<div class="card"><div class="row"><select onchange="per=this.value;render()" style="flex:2">'+perOpts()+'</select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div>';
+  h+='<div style="margin-top:10px"><b>Frequência: '+fp(r.p)+'</b> &nbsp; <span class="mut">'+r.s.C+' ✅ '+r.s.I+' 🟡 '+r.s.F+' ❌ '+r.s.S+' 🤒</span></div>';
+  h+='<div class="mut">Borg médio: '+(r.bm===null?'-':r.bm.toFixed(1).replace('.',','))+'</div></div>';
+  h+='<button class="btn ghost" style="width:100%;margin-bottom:10px" onclick="gA=\''+a.id+'\';pview=\'geral\';F=null;EF=null;tab=\'provas\';render()">🏁 Evolução em provas ('+S.p.filter(function(x){return x.a===a.id}).length+')</button>';
+  var bs=ev.filter(function(e){return e.b}).slice(-20);
+  if(bs.length>1)h+='<div class="card"><div class="mut" style="margin-bottom:6px">Esforço (Borg) nos últimos treinos</div><div class="spark">'+bs.map(function(e){return '<i style="height:'+e.b*10+'%"></i>'}).join('')+'</div></div>';
+  if(!ev.length)h+='<div class="card mut">Nenhum registro neste período.</div>';
+  else h+='<div class="tw"><table><tr><th>Data</th><th>Sit.</th><th>Borg</th><th>Observação</th></tr>'+ev.slice().reverse().map(function(e){return '<tr><td>'+e.dt.slice(8)+'/'+e.dt.slice(5,7)+'</td><td>'+(e.k?SYM[e.k][0]:'')+'</td><td>'+(e.b||'')+'</td><td class="wrap">'+esc(e.o||'')+'</td></tr>'}).join('')+'</table></div>';
+  return h;
+}
+function wrapT(s,n){var l=[],c='';String(s).split(/\s+/).forEach(function(x){if(c&&(c+' '+x).length>n){l.push(c);c=x}else c=(c?c+' ':'')+x});if(c)l.push(c);return l}
+function pdfAthlete(){
+  var a=S.a.find(function(x){return x.id===viewId});if(!a)return;
+  var r=stats(inPer).filter(function(x){return x.a.id===a.id})[0],ev=histRows(a.id),P=mkPDF(595,842),y;
+  function head(first){P.page();y=56;
+    if(first){P.t(40,y,cut(a.name,40),20,1);P.t(40,y+20,perLabel(),12,0,[.35,.35,.35]);
+      P.t(40,y+42,'Frequência: '+fp(r.p)+'     Borg médio: '+(r.bm===null?'-':r.bm.toFixed(1).replace('.',',')),11,1);
+      P.t(40,y+58,r.s.C+' completos, '+r.s.I+' incompletos, '+r.s.F+' faltas, '+r.s.S+' doença/lesão, '+r.s.P+' competições',9,0,[.4,.4,.4]);y+=76}
+    P.r(40,y,515,20,[.84,.93,.96]);[['Data',46],['Situação',100],['Borg',190],['Observação',230]].forEach(function(k){P.t(k[1],y+14,k[0],9,1)});y+=20}
+  head(true);
+  ev.forEach(function(e){
+    var ls=e.o?wrapT(e.o,68):[''],hh=ls.length*12+8;
+    if(y+hh>810)head(false);
+    P.t(46,y+14,e.dt.slice(8)+'/'+e.dt.slice(5,7)+'/'+e.dt.slice(0,4),9,0);
+    if(e.k){P.r(100,y+5,9,9,COL[e.k]);P.t(113,y+14,SYM[e.k][1],9,0)}
+    if(e.b)P.t(194,y+14,e.b,9,1);
+    ls.forEach(function(t,i){P.t(230,y+14+i*12,t,9,0)});
+    P.l(40,y+hh,555,y+hh);y+=hh});
+  sharePDF(P.out(),'frequencia-'+a.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')+'-'+(per==='ano'?year:year+'-T'+per)+'.pdf');
+}
+function addAthlete(){var el=document.getElementById('nm');var n=el.value.trim();if(!n)return;S.a.push({id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:n});S.a.sort(function(x,y){return x.name.localeCompare(y.name,'pt-BR')});save();render()}
+function delAthlete(id){var a=S.a.find(function(x){return x.id===id});if(!confirm('Remover '+a.name+' e todo o histórico dele?'))return;S.a=S.a.filter(function(x){return x.id!==id});S.p=S.p.filter(function(r){return r.a!==id});for(var dt in S.r){delete S.r[dt][id];if(!Object.keys(S.r[dt]).length)delete S.r[dt]}for(var dn in S.n){delete S.n[dn][id];if(!Object.keys(S.n[dn]).length)delete S.n[dn]}save();render()}
+
+function stats(f){
+  var o={};S.a.forEach(function(a){o[a.id]={C:0,I:0,F:0,P:0,D:0,H:0,S:0,bs:0,bc:0}});
+  for(var dt in S.r){if(!f(dt))continue;for(var id in S.r[dt]){if(o[id])o[id][S.r[dt][id]]++}}
+  for(var dq in S.n){if(!f(dq))continue;for(var iq in S.n[dq]){var bb=S.n[dq][iq].b;if(o[iq]&&bb){o[iq].bs+=bb;o[iq].bc++}}}
+  return S.a.map(function(a){var s=o[a.id],n=s.C+s.I+s.F;return {a:a,s:s,n:n,p:n?(s.C+0.5*s.I)/n*100:null,bm:s.bc?s.bs/s.bc:null}});
+}
+function inPer(dt){return +dt.slice(0,4)===year&&(per==='ano'||Math.floor((+dt.slice(5,7)-1)/3)+1===+per)}
+function rankRows(){return stats(inPer).sort(function(x,y){var px=x.p===null?-1:x.p,py=y.p===null?-1:y.p;return py-px||y.n-x.n||x.a.name.localeCompare(y.a.name,'pt-BR')})}
+function perLabel(){return per==='ano'?'Ano '+year:per+'º trimestre de '+year}
+function monLabel(){var t=new Date(+mon.slice(0,4),+mon.slice(5,7)-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});return t.charAt(0).toUpperCase()+t.slice(1)}
+
+/* ---------- PDF ---------- */
+function pe(s){return String(s).replace(/[^\x00-\xff]/g,'-').replace(/[\\()]/g,'\\$&')}
+function mkPDF(W,H){
+  var pg=[],c;
+  return {
+    page:function(){c=[];pg.push(c)},
+    t:function(x,y,s,sz,b,col){col=col||[0,0,0];c.push(col[0]+' '+col[1]+' '+col[2]+' rg BT /F'+(b?2:1)+' '+sz+' Tf '+x.toFixed(1)+' '+(H-y).toFixed(1)+' Td ('+pe(s)+') Tj ET')},
+    r:function(x,y,w,h,col){c.push(col[0]+' '+col[1]+' '+col[2]+' rg '+x.toFixed(1)+' '+(H-y-h).toFixed(1)+' '+w.toFixed(1)+' '+h.toFixed(1)+' re f')},
+    l:function(x1,y1,x2,y2){c.push('0.8 G 0.5 w '+x1+' '+(H-y1)+' m '+x2+' '+(H-y2)+' l S')},
+    out:function(){
+      var ob=['<</Type/Catalog/Pages 2 0 R>>'];
+      ob.push('<</Type/Pages/Kids ['+pg.map(function(_,i){return (5+2*i)+' 0 R'}).join(' ')+']/Count '+pg.length+'>>');
+      ob.push('<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>');
+      ob.push('<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>');
+      pg.forEach(function(p,i){var s=p.join('\n');
+        ob.push('<</Type/Page/Parent 2 0 R/MediaBox [0 0 '+W+' '+H+']/Resources<</Font<</F1 3 0 R/F2 4 0 R>>>>/Contents '+(6+2*i)+' 0 R>>');
+        ob.push('<</Length '+s.length+'>>\nstream\n'+s+'\nendstream')});
+      var o='%PDF-1.4\n',offs=[];
+      ob.forEach(function(x,i){offs.push(o.length);o+=(i+1)+' 0 obj\n'+x+'\nendobj\n'});
+      var xr=o.length;
+      o+='xref\n0 '+(ob.length+1)+'\n0000000000 65535 f \n'+offs.map(function(n){return String(n).padStart(10,'0')+' 00000 n \n'}).join('')+'trailer\n<</Size '+(ob.length+1)+'/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF';
+      var u=new Uint8Array(o.length);for(var i=0;i<o.length;i++)u[i]=o.charCodeAt(i)&255;
+      return new Blob([u],{type:'application/pdf'});
+    }
+  };
+}
+function sharePDF(blob,name){
+  var f=new File([blob],name,{type:'application/pdf'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:name}).catch(function(){})}
+  else{var u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(function(){URL.revokeObjectURL(u)},60000)}
+}
+function pdfRank(){
+  var rows=rankRows(),P=mkPDF(595,842),y;
+  function head(){P.page();P.t(40,56,'Ranking de frequência',20,1);P.t(40,76,perLabel(),12,0,[.35,.35,.35]);
+    y=96;P.r(40,y,515,22,[.84,.93,.96]);
+    [['Pos',46],['Atleta',80],['Freq.',290],['Compl.',340],['Incompl.',384],['Faltas',434],['Doença',476],['Compet.',519]].forEach(function(k){P.t(k[1],y+15,k[0],9,1)});y+=22}
+  head();
+  rows.forEach(function(r,i){
+    if(y>790)head();
+    P.t(46,y+15,i+1,10,0);P.t(80,y+15,cut(r.a.name,34),10,0);P.t(290,y+15,fp(r.p),10,1);
+    P.t(350,y+15,r.s.C,10,0);P.t(396,y+15,r.s.I,10,0);P.t(446,y+15,r.s.F,10,0);P.t(488,y+15,r.s.S,10,0);P.t(532,y+15,r.s.P,10,0);
+    P.l(40,y+22,555,y+22);y+=22});
+  P.t(40,y+18,'Completo vale 100%, incompleto 50% e falta 0%. Descanso, feriado, competição e doença/lesão não entram na conta.',8,0,[.4,.4,.4]);
+  sharePDF(P.out(),'frequencia-ranking-'+(per==='ano'?year:year+'-T'+per)+'.pdf');
+}
+function pdfTable(){
+  var y0=+mon.slice(0,4),m0=+mon.slice(5,7),nd=new Date(y0,m0,0).getDate();
+  var st=stats(function(dt){return dt.slice(0,7)===mon}),P=mkPDF(842,595),x0=170,dw=(842-30-x0-48)/nd,y;
+  function head(){P.page();P.t(30,40,'Tabela de frequência - '+monLabel(),16,1);
+    var lx=30;KEYS.forEach(function(k){P.r(lx,52,10,10,COL[k]);P.t(lx+14,61,k+' '+SYM[k][1],8,0);lx+=110});
+    y=74;P.r(30,y,782,18,[.84,.93,.96]);P.t(34,y+12,'Atleta',9,1);
+    for(var d=1;d<=nd;d++)P.t(x0+(d-1)*dw+dw/2-(d>9?4:2),y+12,d,8,1);
+    P.t(x0+nd*dw+6,y+12,'Freq.',8,1);y+=18}
+  head();
+  st.forEach(function(r){
+    if(y>560)head();
+    P.t(34,y+12,cut(r.a.name,28),9,0);
+    for(var d=1;d<=nd;d++){var k=(S.r[mon+'-'+p2(d)]||{})[r.a.id];
+      if(k){P.r(x0+(d-1)*dw+1,y+1,dw-2,16,COL[k]);P.t(x0+(d-1)*dw+dw/2-2.5,y+12,k,8,1)}}
+    P.t(x0+nd*dw+6,y+12,fp(r.p),8,0);P.l(30,y+18,812,y+18);y+=18});
+  sharePDF(P.out(),'frequencia-tabela-'+mon+'.pdf');
+}
+
+/* ---------- Provas ---------- */
+var STK=[['L','Livre',[50,100,200,400,800,1500]],['C','Costas',[50,100,200]],['P','Peito',[50,100,200]],['B','Borboleta',[50,100,200]],['M','Medley',[100,200,400]]];
+var F=null,EF=null,pfa='todos',openP={},pview='lista',curE=null,gA='',gE='',gP='25',lastA='',lastEv='L100';
+function migE(){S.e=S.e||[];var m={};S.p.forEach(function(r){if(r.e)return;var nm=r.c||'Competição sem nome',k=nm+'|'+r.pl,e=m[k];if(!e){e={id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:nm,d:r.d,d2:'',pl:r.pl};m[k]=e;S.e.push(e)}if(r.d<e.d)e.d=r.d;r.e=e.id})}
+function evDist(k){return Number(k.slice(1))}
+function evLabel(k){var n='';STK.forEach(function(s){if(s[0]===k[0])n=s[1]});return evDist(k)+'m '+n}
+function evOrd(k){var o=0;STK.forEach(function(s,i){if(s[0]===k[0])o=i});return o*10000+evDist(k)}
+function ivOpts(d){return d===50?[25]:d===100?[50]:[50,100,200,400,800].filter(function(x){return x<d})}
+function marksOf(d,iv){var m=[];for(var x=iv;x<d;x+=iv)m.push(x);return m}
+function pt(s){
+  s=String(s).trim().replace(/,/g,'.');var m=s.match(/^(\d{1,3})[:.](\d{1,2})[:.](\d{1,2})$/);
+  if(m){if(Number(m[2])>59)return null;return Number(m[1])*6000+Number(m[2])*100+(m[3].length===1?Number(m[3])*10:Number(m[3]))}
+  m=s.match(/^(\d{1,3}):(\d{1,2})$/);if(m){if(Number(m[2])>59)return null;return Number(m[1])*6000+Number(m[2])*100}
+  m=s.match(/^(\d{1,4})(?:\.(\d{1,2}))?$/);if(m){var fr=m[2]?(m[2].length===1?Number(m[2])*10:Number(m[2])):0;return Number(m[1])*100+fr}
+  return null}
+function ft(cs){var m=Math.floor(cs/6000),r=cs%6000,s=Math.floor(r/100),c=r%100;return (m?m+':'+p2(s):s)+','+p2(c)}
+function fdf(x){return (x<0?'−':'+')+ft(Math.abs(x))}
+function dbr(d){return d.slice(8)+'/'+d.slice(5,7)+'/'+d.slice(0,4)}
+function aName(id){var a=S.a.find(function(x){return x.id===id});return a?a.name:'(removido)'}
+function evDates(e){return dbr(e.d)+(e.d2?' a '+dbr(e.d2):'')}
+function sf(k,v){F[k]=v}
+function setEv(v){F.ev=v;F.iv=ivOpts(evDist(v))[0];F.sp=[];render()}
+function setIv(v){F.iv=Number(v);F.sp=[];render()}
+function setMode(v){F.mode=v;F.sp=[];render()}
+
+/* eventos */
+function newE(id){
+  var e=id?S.e.find(function(x){return x.id===id}):null;
+  EF=e?{id:e.id,n:e.n,d:e.d,d2:e.d2||'',pl:e.pl}:{id:null,n:'',d:ds(new Date()),d2:'',pl:'25'};
+  render();window.scrollTo(0,0)}
+function saveE(){
+  if(!EF.n.trim())return alert('Dê um nome ao evento.');
+  if(!EF.d)return alert('Informe a data.');
+  if(EF.d2&&EF.d2<EF.d)return alert('A data final deve ser depois da inicial.');
+  var rec={id:EF.id||'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:EF.n.trim(),d:EF.d,d2:EF.d2||'',pl:EF.pl};
+  if(EF.id){S.e=S.e.map(function(x){return x.id===EF.id?rec:x});S.p.forEach(function(r){if(r.e===rec.id){r.c=rec.n;r.pl=rec.pl}})}
+  else{S.e.push(rec);curE=rec.id;pview='evento';pfa='todos'}
+  EF=null;save();render();window.scrollTo(0,0)}
+function delE(id){
+  var n=S.p.filter(function(r){return r.e===id}).length;
+  if(!confirm('Remover este evento'+(n?' e os '+n+' resultados dele':'')+'?'))return;
+  S.e=S.e.filter(function(e){return e.id!==id});S.p=S.p.filter(function(r){return r.e!==id});
+  pview='lista';curE=null;save();render()}
+function pEForm(){
+  var h='<div class="card"><div class="name" style="font-size:18px">'+(EF.id?'Editar evento':'Novo evento')+'</div>';
+  h+='<input placeholder="Nome da competição (ex.: Campeonato Estadual)" value="'+esc(EF.n)+'" oninput="EF.n=this.value">';
+  h+='<div class="g2" style="margin-top:8px"><div><div class="mut">Data</div><input type="date" value="'+EF.d+'" onchange="EF.d=this.value"></div><div><div class="mut">Até (opcional)</div><input type="date" value="'+EF.d2+'" onchange="EF.d2=this.value"></div></div>';
+  h+='<div class="mut" style="margin:8px 0 4px">Piscina</div><select onchange="EF.pl=this.value"><option value="25"'+(EF.pl==='25'?' selected':'')+'>25m</option><option value="50"'+(EF.pl==='50'?' selected':'')+'>50m</option></select>';
+  h+='<div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="EF=null;render()">Cancelar</button><button class="btn" onclick="saveE()">Salvar</button></div></div>';
+  return h}
+
+/* resultados */
+function newP(id){
+  if(id){var r=S.p.find(function(x){return x.id===id});
+    F={id:r.id,e:r.e,a:r.a,d:r.d,ev:r.ev,f:ft(r.f),iv:r.iv,mode:'acum',o:r.o||'',sp:marksOf(evDist(r.ev),r.iv).map(function(m,i){return (r.sp[i]===null||r.sp[i]===undefined)?'':ft(r.sp[i])})}}
+  else{var E=S.e.find(function(x){return x.id===curE});
+    F={id:null,e:curE,a:S.a.some(function(a){return a.id===lastA})?lastA:'',d:E.d,ev:lastEv,f:'',iv:50,mode:'acum',sp:[],o:''};
+    F.iv=ivOpts(evDist(F.ev))[0]}
+  render();window.scrollTo(0,0)}
+function delP(id){if(!confirm('Remover este resultado?'))return;S.p=S.p.filter(function(r){return r.id!==id});save();render()}
+function saveP(again){
+  if(!F.a)return alert('Escolha o atleta.');
+  if(!F.d)return alert('Informe a data.');
+  var E=S.e.find(function(x){return x.id===F.e});if(!E)return alert('Evento não encontrado.');
+  var f=pt(F.f);if(!f)return alert('Tempo final inválido. Exemplos: 27,85 ou 1:05,32');
+  var d=evDist(F.ev),ms=marksOf(d,F.iv),vals=[],cum=[],i,v,s;
+  for(i=0;i<ms.length;i++){s=(F.sp[i]||'').trim();if(!s){vals.push(null);continue}v=pt(s);if(!v)return alert('Parcial de '+ms[i]+'m inválida. Exemplos: 27,85 ou 1:05,32');vals.push(v)}
+  if(F.mode==='acum')cum=vals;
+  else{var acc=0,gap=false;for(i=0;i<vals.length;i++){if(vals[i]===null){gap=true;cum.push(null);continue}if(gap)return alert('No modo “tempo de cada trecho”, preencha as parciais em ordem, sem pular.');acc+=vals[i];cum.push(acc)}}
+  var prev=0;for(i=0;i<cum.length;i++){if(cum[i]===null)continue;if(cum[i]<=prev)return alert('A parcial de '+ms[i]+'m deve ser maior que a anterior.');prev=cum[i]}
+  if(prev>=f)return alert('As parciais devem ser menores que o tempo final.');
+  var rec={id:F.id||'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),e:E.id,a:F.a,d:F.d,c:E.n,pl:E.pl,ev:F.ev,iv:F.iv,f:f,sp:cum,o:F.o.trim()};
+  if(F.id){S.p=S.p.map(function(x){return x.id===F.id?rec:x})}else S.p.push(rec);
+  lastA=F.a;lastEv=F.ev;F=null;save();if(again)newP();else render();window.scrollTo(0,0)}
+function evOpts(sel,all){return '<option value="'+all+'">'+(all==='todas'?'Todas as provas':'')+'</option>'+STK.map(function(s){return '<optgroup label="'+s[1]+'">'+s[2].map(function(x){var k=s[0]+x;return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+x+'m '+s[1]+'</option>'}).join('')+'</optgroup>'}).join('')}
+function pForm(){
+  var E=S.e.find(function(x){return x.id===F.e})||{n:'',pl:'25'},d=evDist(F.ev),ms=marksOf(d,F.iv),h='<div class="card"><div class="name" style="font-size:18px;margin-bottom:2px">'+(F.id?'Editar resultado':'Novo resultado')+'</div><div class="mut" style="margin-bottom:10px">'+esc(E.n)+' · piscina '+E.pl+'m</div>';
+  h+='<select onchange="sf(\'a\',this.value)"><option value="">Escolha o atleta</option>'+S.a.map(function(a){return '<option value="'+a.id+'"'+(F.a===a.id?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</select>';
+  h+='<input type="date" style="margin-top:8px" value="'+F.d+'" onchange="sf(\'d\',this.value)">';
+  h+='<select style="margin-top:8px" onchange="setEv(this.value)">'+evOpts(F.ev,'').replace('<option value=""></option>','')+'</select>';
+  h+='<div class="mut" style="margin:10px 0 4px">Tempo final</div><input inputmode="decimal" placeholder="ex.: 1:05,32 ou 27,85" value="'+esc(F.f)+'" oninput="sf(\'f\',this.value)">';
+  h+='<div class="g2" style="margin-top:10px"><div><div class="mut">Parcial a cada</div><select onchange="setIv(this.value)">'+ivOpts(d).map(function(x){return '<option value="'+x+'"'+(F.iv===x?' selected':'')+'>'+x+'m</option>'}).join('')+'</select></div><div><div class="mut">Digitar como</div><select onchange="setMode(this.value)"><option value="acum"'+(F.mode==='acum'?' selected':'')+'>Acumulado</option><option value="trecho"'+(F.mode==='trecho'?' selected':'')+'>Tempo de cada trecho</option></select></div></div>';
+  h+='<div class="mut" style="margin:8px 0">'+(F.mode==='acum'?'Acumulado: o tempo desde a largada em cada ponto (ex.: aos 50m, 27,85). O app calcula o tempo de cada trecho.':'Trecho: o tempo gasto só naquele pedaço. O último trecho é calculado a partir do tempo final.')+'</div>';
+  ms.forEach(function(m,i){var lab=F.mode==='acum'?m+'m':(i?ms[i-1]:0)+'–'+m+'m';h+='<div class="row" style="margin-bottom:6px"><div class="mut" style="width:84px">'+lab+'</div><input inputmode="decimal" placeholder="0,00" value="'+esc(F.sp[i]||'')+'" oninput="F.sp['+i+']=this.value"></div>'});
+  h+='<textarea rows="2" style="margin-top:6px" placeholder="Observações da prova" oninput="sf(\'o\',this.value)">'+esc(F.o)+'</textarea>';
+  h+='<div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="F=null;render()">Cancelar</button><button class="btn" onclick="saveP()">Salvar</button></div>';
+  if(!F.id)h+='<button class="btn ghost" style="width:100%;margin-top:8px" onclick="saveP(true)">Salvar e adicionar outro</button>';
+  return h+'</div>'}
+function pInfo(){
+  var L=S.p.slice().sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:(x.id<y.id?-1:1)}),mn={},cn={},last={},seen={},o={};
+  L.forEach(function(r){var k=r.a+'|'+r.ev+'|'+r.pl;cn[k]=(cn[k]||0)+1;if(mn[k]===undefined||r.f<mn[k])mn[k]=r.f});
+  L.forEach(function(r){var k=r.a+'|'+r.ev+'|'+r.pl;o[r.id]={diff:last[k]===undefined?null:r.f-last[k],pb:cn[k]>1&&r.f===mn[k]&&!seen[k]};if(r.f===mn[k])seen[k]=1;last[k]=r.f});
+  return o}
+function pCard(r,inf){
+  var i=inf[r.id],d=evDist(r.ev),ms=marksOf(d,r.iv),pts=[],h='';
+  ms.forEach(function(m,j){if(r.sp[j]!==null&&r.sp[j]!==undefined)pts.push([m,r.sp[j]])});
+  var np=pts.length;pts.push([d,r.f]);
+  h+='<div class="card"><div class="row"><div class="grow"><div class="name" style="margin:0">'+esc(aName(r.a))+'</div><div class="mut">'+evLabel(r.ev)+' · '+dbr(r.d)+'</div></div><div class="pct" style="font-size:22px">'+ft(r.f)+'</div></div>';
+  var bd='';if(i.pb)bd+='🏅 Melhor marca';
+  if(i.diff!==null)bd+=(bd?' · ':'')+'<span class="'+(i.diff<0?'good':i.diff>0?'bad':'')+'">'+(i.diff===0?'igual à anterior':fdf(i.diff)+' vs. anterior')+'</span>';
+  if(bd)h+='<div style="margin-top:6px;font-size:14px">'+bd+'</div>';
+  if(np){h+='<button class="lnk" onclick="openP[\''+r.id+'\']=!openP[\''+r.id+'\'];render()">'+(openP[r.id]?'▾':'▸')+' Parciais ('+np+')</button>';
+    if(openP[r.id]){h+='<div class="tw" style="margin-top:8px"><table style="width:100%"><tr><th>Ponto</th><th>Acumulado</th><th>Trecho</th></tr>';
+      var pv=[0,0];pts.forEach(function(p){h+='<tr><td>'+p[0]+'m</td><td>'+ft(p[1])+'</td><td>'+ft(p[1]-pv[1])+' <span class="mut">('+pv[0]+'–'+p[0]+')</span></td></tr>';pv=p});
+      h+='</table></div>'}}
+  if(r.o)h+='<div class="mut" style="margin-top:6px">📝 '+esc(r.o)+'</div>';
+  return h+'<div class="g2" style="margin-top:8px"><button class="btn ghost" onclick="newP(\''+r.id+'\')">Editar</button><button class="btn ghost" onclick="delP(\''+r.id+'\')">Remover</button></div></div>'}
+
+/* telas de Provas */
+function pTab(){
+  if(EF)return pEForm();
+  if(F)return pForm();
+  if(pview==='evento'&&S.e.some(function(e){return e.id===curE}))return pEvent();
+  if(pview!=='geral')pview='lista';
+  return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(pview==='lista'?'':' ghost')+'" onclick="pview=\'lista\';render()">Competições</button><button class="btn'+(pview==='geral'?'':' ghost')+'" onclick="pview=\'geral\';render()">Geral</button></div>'+(pview==='geral'?pGeral():pHome())}
+function pHome(){
+  var h='<button class="btn" style="width:100%;margin-bottom:10px" onclick="newE()">+ Adicionar evento</button>';
+  if(!S.e.length)return h+'<div class="card mut">Nenhum evento ainda. Toque em “Adicionar evento” para cadastrar uma competição e depois lance os resultados dos atletas nela.</div>';
+  S.e.slice().sort(function(x,y){return x.d<y.d?1:x.d>y.d?-1:0}).forEach(function(e){
+    var rs=S.p.filter(function(r){return r.e===e.id}),at={};rs.forEach(function(r){at[r.a]=1});
+    h+='<div class="card" style="cursor:pointer" onclick="curE=\''+e.id+'\';pview=\'evento\';pfa=\'todos\';render();window.scrollTo(0,0)"><div class="row"><div class="grow"><div class="name" style="margin:0">'+esc(e.n)+'</div><div class="mut">'+evDates(e)+' · piscina '+e.pl+'m</div></div><div class="mut" style="text-align:right">'+rs.length+' resultado'+(rs.length===1?'':'s')+'<br>'+Object.keys(at).length+' atleta'+(Object.keys(at).length===1?'':'s')+'</div><div class="mut">›</div></div></div>'});
+  return h}
+function pEvent(){
+  var e=S.e.find(function(x){return x.id===curE}),inf=pInfo();
+  var h='<div class="row" style="margin-bottom:10px"><button class="btn ghost" onclick="pview=\'lista\';render()">‹ Voltar</button><div class="name grow" style="margin:0;font-size:18px">'+esc(e.n)+'</div></div>';
+  h+='<div class="card"><div class="mut">'+evDates(e)+' · piscina '+e.pl+'m</div><div class="g2" style="margin-top:8px"><button class="btn ghost" onclick="newE(\''+e.id+'\')">Editar evento</button><button class="btn ghost" onclick="delE(\''+e.id+'\')">Remover evento</button></div></div>';
+  if(!S.a.length)return h+'<div class="card mut">Cadastre atletas na aba “Atletas” para lançar resultados.</div>';
+  h+='<button class="btn" style="width:100%;margin-bottom:10px" onclick="newP()">+ Adicionar resultado</button>';
+  var all=S.p.filter(function(r){return r.e===e.id});
+  if(!all.length)return h+'<div class="card mut">Nenhum resultado neste evento ainda.</div>';
+  h+='<div class="card"><select onchange="pfa=this.value;render()"><option value="todos">Todos os atletas</option>'+S.a.filter(function(a){return all.some(function(r){return r.a===a.id})}).map(function(a){return '<option value="'+a.id+'"'+(pfa===a.id?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</select></div>';
+  all.filter(function(r){return pfa==='todos'||r.a===pfa}).sort(function(x,y){return aName(x.a).localeCompare(aName(y.a),'pt-BR')||evOrd(x.ev)-evOrd(y.ev)}).forEach(function(r){h+=pCard(r,inf)});
+  return h}
+function chart(pts){
+  var W=340,H=210,L=46,R=16,T=24,B=26,t0=new Date(year,0,1).getTime(),t1=new Date(year,11,31).getTime(),fs=pts.map(function(p){return p.f}),mn=Math.min.apply(null,fs),mx=Math.max.apply(null,fs),best=mn;
+  if(mx===mn){mn-=100;mx+=100}else{var pad=(mx-mn)*0.2;mn-=pad;mx+=pad}
+  function X(d){return L+(pd(d).getTime()-t0)/(t1-t0)*(W-L-R)}
+  function Y(f){return T+(f-mn)/(mx-mn)*(H-T-B)}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="Evolução do tempo final">';
+  for(var i=0;i<3;i++){var v=mn+(mx-mn)*i/2,y=Y(v);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--bd)"/><text x="'+(L-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="9" style="fill:var(--mut)">'+ft(Math.round(v))+'</text>'}
+  'JFMAMJJASOND'.split('').forEach(function(m,k){s+='<text x="'+X(year+'-'+p2(k+1)+'-15')+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" style="fill:var(--mut)">'+m+'</text>'});
+  if(pts.length>1)s+='<polyline fill="none" style="stroke:var(--ac)" stroke-width="2" points="'+pts.map(function(p){return X(p.d).toFixed(1)+','+Y(p.f).toFixed(1)}).join(' ')+'"/>';
+  pts.forEach(function(p){var x=X(p.d),y=Y(p.f),b=p.f===best,an=x<34?'start':x>W-34?'end':'middle';
+    s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(b?6:4)+'" style="fill:var(--ac);stroke:var(--card)" stroke-width="2"/><text x="'+x.toFixed(1)+'" y="'+(y-9).toFixed(1)+'" text-anchor="'+an+'" font-size="9" style="fill:var(--fg)">'+ft(p.f)+'</text>'});
+  return s+'</svg>'}
+function pGeral(){
+  if(!S.p.length)return '<div class="card mut">Quando você lançar resultados nos eventos, a evolução de cada atleta aparece aqui.</div>';
+  var withR=S.a.filter(function(a){return S.p.some(function(r){return r.a===a.id})});
+  if(!withR.length)return '<div class="card mut">Nenhum resultado de atleta cadastrado.</div>';
+  if(!withR.some(function(a){return a.id===gA}))gA=withR[0].id;
+  var mine=S.p.filter(function(r){return r.a===gA}),evs=[];
+  mine.forEach(function(r){if(evs.indexOf(r.ev)<0)evs.push(r.ev)});evs.sort(function(x,y){return evOrd(x)-evOrd(y)});
+  if(evs.indexOf(gE)<0)gE=evs[0];
+  var h='<div class="card"><select onchange="gA=this.value;render()">'+withR.map(function(a){return '<option value="'+a.id+'"'+(gA===a.id?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</select>';
+  h+='<div class="row" style="margin-top:8px"><select onchange="gE=this.value;render()" style="flex:2">'+evs.map(function(k){return '<option value="'+k+'"'+(gE===k?' selected':'')+'>'+evLabel(k)+'</option>'}).join('')+'</select><select onchange="gP=this.value;render()" style="flex:1"><option value="25"'+(gP==='25'?' selected':'')+'>25m</option><option value="50"'+(gP==='50'?' selected':'')+'>50m</option></select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div></div>';
+  var pts=mine.filter(function(r){return r.ev===gE&&r.pl===gP&&+r.d.slice(0,4)===year}).sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0});
+  if(!pts.length){var other=mine.some(function(r){return r.ev===gE&&r.pl!==gP});
+    h+='<div class="card mut">Sem resultados em '+evLabel(gE)+' na piscina de '+gP+'m em '+year+'.'+(other?' Há resultados na outra piscina: troque o filtro.':' Tente outro ano.')+'</div>'}
+  else{
+    h+='<div class="card"><div class="mut" style="margin-bottom:4px">Tempo final em '+evLabel(gE)+' ('+gP+'m), '+year+'. Quanto mais alto no gráfico, mais rápido.</div>'+chart(pts)+'</div>';
+    h+='<div class="tw"><table style="width:100%"><tr><th>Data</th><th>Competição</th><th>Tempo</th><th>Variação</th></tr>'+pts.map(function(r,k){var dv=k?r.f-pts[k-1].f:null;return '<tr><td>'+dbr(r.d).slice(0,5)+'</td><td class="wrap">'+esc(r.c||'')+'</td><td><b>'+ft(r.f)+'</b></td><td>'+(dv===null?'':'<span class="'+(dv<0?'good':dv>0?'bad':'')+'">'+(dv===0?'=':fdf(dv))+'</span>')+'</td></tr>'}).join('')+'</table></div>'}
+  var bm={};mine.forEach(function(r){var k=r.ev+'|'+r.pl;if(!bm[k]||r.f<bm[k].f)bm[k]=r});
+  var ks=Object.keys(bm).sort(function(x,y){return evOrd(bm[x].ev)-evOrd(bm[y].ev)||(bm[x].pl<bm[y].pl?-1:1)});
+  h+='<div class="card"><div class="name">Melhores marcas</div><table style="width:100%"><tr><th style="text-align:left">Prova</th><th>Piscina</th><th>Tempo</th><th>Data</th></tr>'+ks.map(function(k){var r=bm[k];return '<tr><td style="text-align:left">'+evLabel(r.ev)+'</td><td>'+r.pl+'m</td><td><b>'+ft(r.f)+'</b></td><td>'+dbr(r.d).slice(0,5)+'</td></tr>'}).join('')+'</table></div>';
+  return h}
+
+/* ---------- Telas ---------- */
+function render(){
+  document.getElementById('nav').innerHTML=TABS.map(function(t){return '<button class="'+((tab==='atleta'?backTab:tab)===t[0]?'on':'')+'" onclick="tab=\''+t[0]+'\';render()">'+t[1]+'</button>'}).join('');
+  var h='';
+  if(tab==='chamada'){
+    var lab=pd(date).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+    var dr=S.r[date]||{},mk=S.a.filter(function(a){return dr[a.id]}).length;
+    h+='<div class="card"><div class="row"><button class="btn ghost" onclick="shift(-1)" aria-label="Dia anterior">‹</button><input type="date" value="'+date+'" onchange="if(this.value){date=this.value;render()}"><button class="btn ghost" onclick="shift(1)" aria-label="Próximo dia">›</button></div>';
+    h+='<div class="mut" style="margin:8px 0;text-align:center">'+lab+'. '+mk+' de '+S.a.length+' marcados.</div><div class="g2">';
+    [['C','✅ Marcar restantes'],['D','💤 Descanso'],['H','🎉 Feriado'],['P','🏆 Competição']].forEach(function(b){h+='<button class="btn ghost" onclick="markAll(\''+b[0]+'\')">'+b[1]+'</button>'});
+    h+='</div></div><div class="leg">'+KEYS.map(function(k){return SYM[k][0]+' '+SYM[k][1]}).join(' &nbsp; ')+'</div>';
+    if(!S.a.length)h+='<div class="card mut">Nenhum atleta ainda. Vá em “Atletas” e cadastre sua equipe.</div>';
+    S.a.forEach(function(a){
+      var cur=dr[a.id];
+      h+='<div class="card"><div class="name" style="cursor:pointer" onclick="openAthlete(\''+a.id+'\')">'+esc(a.name)+' <span class="mut">›</span></div><div class="sym">'+KEYS.map(function(k){return '<button class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
+    });
+  }
+  if(tab==='tabela'){
+    var nd=new Date(+mon.slice(0,4),+mon.slice(5,7),0).getDate();
+    h+='<div class="card row"><input type="month" value="'+mon+'" onchange="if(this.value){mon=this.value;render()}"><button class="btn" onclick="pdfTable()">PDF</button></div>';
+    if(!S.a.length)h+='<div class="card mut">Cadastre atletas na aba “Atletas” para ver a tabela.</div>';
+    else{
+      var st=stats(function(dt){return dt.slice(0,7)===mon});
+      h+='<div class="tw"><table><tr><th class="fx">Atleta</th>';
+      for(var d=1;d<=nd;d++)h+='<th>'+d+'</th>';
+      h+='<th>Freq.</th></tr>';
+      st.forEach(function(r){
+        h+='<tr><td class="fx">'+esc(r.a.name)+'</td>';
+        for(var d=1;d<=nd;d++){var k=(S.r[mon+'-'+p2(d)]||{})[r.a.id];h+='<td>'+(k?SYM[k][0]:'')+'</td>'}
+        h+='<td><b>'+fp(r.p)+'</b></td></tr>';
+      });
+      h+='</table></div><div class="mut">Deslize para o lado para ver todos os dias.</div>';
+    }
+  }
+  if(tab==='rank'){
+    h+='<div class="card"><div class="row"><select onchange="per=this.value;render()" style="flex:2">';
+    [['ano','Ano inteiro'],['1','1º trimestre (jan–mar)'],['2','2º trimestre (abr–jun)'],['3','3º trimestre (jul–set)'],['4','4º trimestre (out–dez)']].forEach(function(p){h+='<option value="'+p[0]+'"'+(per===p[0]?' selected':'')+'>'+p[1]+'</option>'});
+    h+='</select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div>';
+    h+='<button class="btn" style="width:100%;margin-top:8px" onclick="pdfRank()">Gerar PDF do ranking</button></div>';
+    var rows=rankRows();
+    if(!rows.length)h+='<div class="card mut">Cadastre atletas e registre treinos para ver o ranking.</div>';
+    else{h+='<div class="card">';
+      var medals=['🥇','🥈','🥉'];
+      rows.forEach(function(r,i){
+        h+='<div class="rk" style="cursor:pointer" onclick="openAthlete(\''+r.a.id+'\')"><div class="pos">'+(r.p!==null&&i<3?medals[i]:i+1)+'</div><div class="grow"><div class="name" style="margin:0">'+esc(r.a.name)+'</div><div class="mut">'+r.s.C+' ✅ &nbsp;'+r.s.I+' 🟡 &nbsp;'+r.s.F+' ❌ &nbsp;'+r.s.P+' 🏆'+(r.s.S?' &nbsp;'+r.s.S+' 🤒':'')+(r.bm!==null?' &nbsp;Borg '+r.bm.toFixed(1).replace('.',','):'')+'</div>'+(r.p!==null?'<div class="bar"><i style="width:'+r.p+'%"></i></div>':'')+'</div><div class="pct">'+fp(r.p)+'</div></div>';
+      });
+      h+='</div><div class="mut">Completo vale 100%, incompleto 50% e falta 0%. Descanso, feriado, competição e doença/lesão não entram na conta.</div>';
+    }
+  }
+  if(tab==='provas')h+=pTab();
+  if(tab==='atleta')h+=athleteView();
+  if(tab==='atletas'){
+    h+='<div class="card row"><input id="nm" placeholder="Nome do atleta" onkeydown="if(event.key===\'Enter\')addAthlete()"><button class="btn" onclick="addAthlete()">Adicionar</button></div>';
+    if(!S.a.length)h+='<div class="mut">Digite o nome e toque em Adicionar.</div>';
+    S.a.forEach(function(a){h+='<div class="card row"><div class="grow name" style="margin:0">'+esc(a.name)+'</div><button class="btn ghost" onclick="openAthlete(\''+a.id+'\')">Histórico</button><button class="btn ghost" onclick="delAthlete(\''+a.id+'\')">Remover</button></div>'});
+    h+='<div class="card" style="margin-top:18px"><div class="name">Backup</div><div class="mut" style="margin-bottom:8px">Seus dados ficam só neste aparelho. Copie o backup de vez em quando e guarde em Notas.</div><button class="btn" onclick="copyBk()">Copiar backup</button><div id="msg" class="mut" style="margin-top:8px"></div>';
+    h+='<textarea id="rs" rows="3" style="margin-top:12px" placeholder="Para restaurar, cole o backup aqui"></textarea><div style="margin-top:8px"><button class="btn ghost" onclick="restore()">Restaurar</button></div></div>';
+  }
+  document.getElementById('main').innerHTML=h;
+}
+function copyBk(){var t=JSON.stringify(S),m=document.getElementById('msg');
+  function fb(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');m.textContent='Backup copiado.'}catch(e){m.textContent='Não foi possível copiar.'}ta.remove()}
+  try{navigator.clipboard.writeText(t).then(function(){m.textContent='Backup copiado.'},fb)}catch(e){fb()}}
+function restore(){var v=document.getElementById('rs').value.trim();try{var o=JSON.parse(v);if(!o.a||!o.r)throw 0;if(!confirm('Isso substitui os dados atuais. Continuar?'))return;S=o;S.n=S.n||{};S.p=S.p||[];migE();save();tab='chamada';render()}catch(e){alert('Backup inválido. Cole o texto completo copiado.')}}
+render();
+</script>
+</body>
+</html>
