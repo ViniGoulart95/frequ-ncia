@@ -19,7 +19,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0 auto;background:var(--bg);color:var(--fg);font:16px/1.4 "Avenir Next",system-ui,-apple-system,"Segoe UI",sans-serif;max-width:760px;padding:12px 14px 40px}
 h1{font-size:22px;margin:6px 0 10px}
 nav{display:flex;gap:6px;margin-bottom:14px}
-nav button{flex:1;padding:10px 2px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:10px;font:inherit;font-size:14px}
+nav button{flex:1;padding:7px 1px;border:1px solid var(--bd);background:var(--card);color:var(--fg);border-radius:10px;font:inherit;font-size:12px}
 nav button.on{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:600}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px}
 input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px;width:100%}
@@ -79,7 +79,7 @@ function fp(p){return p===null?'-':p.toFixed(1).replace('.',',')+'%'}
 function cut(s,n){return s.length>n?s.slice(0,n-1)+'.':s}
 var tab='chamada',date=ds(new Date()),per='ano',year=new Date().getFullYear(),mon=date.slice(0,7),openId=null,viewId=null,backTab='atletas';
 var BL=['','Muito leve','Leve','Moderado','Um pouco forte','Forte','Forte','Muito forte','Muito forte','Quase máximo','Máximo'];
-var TABS=[['chamada','Chamada'],['tabela','Tabela'],['rank','Ranking'],['provas','Provas'],['atletas','Atletas']];
+var TABS=[['chamada','Chamada','✅'],['tabela','Tabela','📅'],['rank','Ranking','🏆'],['provas','Resultados','🏁'],['atletas','Atletas','👥']];
 
 function shift(n){var d=pd(date);d.setDate(d.getDate()+n);date=ds(d);render()}
 function setCode(id,k){var d=S.r[date]||(S.r[date]={});if(d[id]===k)delete d[id];else d[id]=k;if(!Object.keys(d).length)delete S.r[date];save();render()}
@@ -108,7 +108,7 @@ function histRows(id){
 function athleteView(){
   var a=S.a.find(function(x){return x.id===viewId});if(!a){tab='atletas';return ''}
   var r=stats(inPer).filter(function(x){return x.a.id===a.id})[0],ev=histRows(a.id);
-  var h='<div class="row" style="margin-bottom:10px"><button class="btn ghost" onclick="tab=backTab;render()">‹ Voltar</button><div class="name grow" style="margin:0;font-size:18px">'+esc(a.name)+'</div><button class="btn" onclick="pdfAthlete()">PDF</button></div>';
+  var h='<div class="row" style="margin-bottom:10px"><button class="btn ghost" onclick="tab=backTab;render()">‹ Voltar</button><div class="grow"><div class="name" style="margin:0;font-size:18px">'+esc(a.name)+'</div><div class="mut">'+catTxt(a.b)+'</div></div><button class="btn" onclick="pdfAthlete()">PDF</button></div>';
   h+='<div class="card"><div class="row"><select onchange="per=this.value;render()" style="flex:2">'+perOpts()+'</select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div>';
   h+='<div style="margin-top:10px"><b>Frequência: '+fp(r.p)+'</b> &nbsp; <span class="mut">'+r.s.C+' ✅ '+r.s.I+' 🟡 '+r.s.F+' ❌ '+r.s.S+' 🤒</span></div>';
   h+='<div class="mut">Borg médio: '+(r.bm===null?'-':r.bm.toFixed(1).replace('.',','))+'</div></div>';
@@ -139,7 +139,18 @@ function pdfAthlete(){
     P.l(40,y+hh,555,y+hh);y+=hh});
   sharePDF(P.out(),'frequencia-'+a.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-')+'-'+(per==='ano'?year:year+'-T'+per)+'.pdf');
 }
-function addAthlete(){var el=document.getElementById('nm');var n=el.value.trim();if(!n)return;S.a.push({id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:n});S.a.sort(function(x,y){return x.name.localeCompare(y.name,'pt-BR')});save();render()}
+var CATS=[[8,'Pré-mirim'],[9,'Mirim I'],[10,'Mirim II'],[11,'Petiz I'],[12,'Petiz II'],[13,'Infantil I'],[14,'Infantil II'],[15,'Juvenil I'],[16,'Juvenil II'],[17,'Júnior I'],[18,'Júnior II'],[19,'Júnior II']];
+function age(b,yr){return b?(yr||new Date().getFullYear())-Number(b.slice(0,4)):null}
+function catOf(b,yr){var a=age(b,yr);if(a===null||isNaN(a))return '';if(a<8)return 'Abaixo de 8 anos';if(a>=20)return 'Sênior';for(var i=0;i<CATS.length;i++)if(CATS[i][0]===a)return CATS[i][1];return ''}
+function catTxt(b,yr){var a=age(b,yr);return a===null||isNaN(a)?'':catOf(b,yr)+' · '+a+' anos'}
+var EA=null;
+function editA(id){var a=S.a.find(function(x){return x.id===id});EA={id:id,n:a.name,b:a.b||''};render();window.scrollTo(0,0)}
+function saveA(){if(!EA.n.trim())return alert('Informe o nome.');var a=S.a.find(function(x){return x.id===EA.id});a.name=EA.n.trim();a.b=EA.b||'';S.a.sort(function(x,y){return x.name.localeCompare(y.name,'pt-BR')});EA=null;save();render()}
+var TIPS={chamada:'Registre a presença do dia: toque no símbolo de cada atleta. Use “Esforço e observação” para anotar o Borg e como ele se sentiu.',tabela:'Quadro do mês: cada linha é um atleta e cada coluna um dia, com o % de frequência no final.',rank:'Os atletas mais assíduos do ano ou do trimestre. Toque num nome para ver o atleta.',atletas:'Cadastre seus atletas com a data de nascimento: a categoria é calculada sozinha. Toque em Histórico para ver cada um.'};
+function tipFor(){
+  if(tab==='provas'){if(F||EF||pview==='evento')return '';return pview==='geral'?'Evolução do tempo final de um atleta ao longo do ano e as melhores marcas dele.':'Cada competição é um evento: abra um para lançar os tempos e as parciais dos atletas.'}
+  return TIPS[tab]||''}
+function addAthlete(){var el=document.getElementById('nm');var n=el.value.trim();if(!n)return;S.a.push({id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:n,b:(document.getElementById('nb')||{}).value||''});S.a.sort(function(x,y){return x.name.localeCompare(y.name,'pt-BR')});save();render()}
 function delAthlete(id){var a=S.a.find(function(x){return x.id===id});if(!confirm('Remover '+a.name+' e todo o histórico dele?'))return;S.a=S.a.filter(function(x){return x.id!==id});S.p=S.p.filter(function(r){return r.a!==id});for(var dt in S.r){delete S.r[dt][id];if(!Object.keys(S.r[dt]).length)delete S.r[dt]}for(var dn in S.n){delete S.n[dn][id];if(!Object.keys(S.n[dn]).length)delete S.n[dn]}save();render()}
 
 function stats(f){
@@ -330,7 +341,7 @@ function pTab(){
   if(F)return pForm();
   if(pview==='evento'&&S.e.some(function(e){return e.id===curE}))return pEvent();
   if(pview!=='geral')pview='lista';
-  return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(pview==='lista'?'':' ghost')+'" onclick="pview=\'lista\';render()">Competições</button><button class="btn'+(pview==='geral'?'':' ghost')+'" onclick="pview=\'geral\';render()">Geral</button></div>'+(pview==='geral'?pGeral():pHome())}
+  return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(pview==='lista'?'':' ghost')+'" onclick="pview=\'lista\';render()">Competições</button><button class="btn'+(pview==='geral'?'':' ghost')+'" onclick="pview=\'geral\';render()">Evolução</button></div>'+(pview==='geral'?pGeral():pHome())}
 function pHome(){
   var h='<button class="btn" style="width:100%;margin-bottom:10px" onclick="newE()">+ Adicionar evento</button>';
   if(!S.e.length)return h+'<div class="card mut">Nenhum evento ainda. Toque em “Adicionar evento” para cadastrar uma competição e depois lance os resultados dos atletas nela.</div>';
@@ -384,7 +395,7 @@ function pGeral(){
 
 /* ---------- Telas ---------- */
 function render(){
-  document.getElementById('nav').innerHTML=TABS.map(function(t){return '<button class="'+((tab==='atleta'?backTab:tab)===t[0]?'on':'')+'" onclick="tab=\''+t[0]+'\';render()">'+t[1]+'</button>'}).join('');
+  document.getElementById('nav').innerHTML=TABS.map(function(t){return '<button class="'+((tab==='atleta'?backTab:tab)===t[0]?'on':'')+'" onclick="tab=\''+t[0]+'\';render()"><span style="font-size:17px;display:block;line-height:1.25">'+t[2]+'</span>'+t[1]+'</button>'}).join('');
   var h='';
   if(tab==='chamada'){
     var lab=pd(date).toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
@@ -396,7 +407,7 @@ function render(){
     if(!S.a.length)h+='<div class="card mut">Nenhum atleta ainda. Vá em “Atletas” e cadastre sua equipe.</div>';
     S.a.forEach(function(a){
       var cur=dr[a.id];
-      h+='<div class="card"><div class="name" style="cursor:pointer" onclick="openAthlete(\''+a.id+'\')">'+esc(a.name)+' <span class="mut">›</span></div><div class="sym">'+KEYS.map(function(k){return '<button class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
+      h+='<div class="card"><div class="name" style="cursor:pointer" onclick="openAthlete(\''+a.id+'\')">'+esc(a.name)+(a.b?' <span class="mut" style="font-weight:400">· '+catOf(a.b)+'</span>':'')+' <span class="mut">›</span></div><div class="sym">'+KEYS.map(function(k){return '<button class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
     });
   }
   if(tab==='tabela'){
@@ -426,7 +437,7 @@ function render(){
     else{h+='<div class="card">';
       var medals=['🥇','🥈','🥉'];
       rows.forEach(function(r,i){
-        h+='<div class="rk" style="cursor:pointer" onclick="openAthlete(\''+r.a.id+'\')"><div class="pos">'+(r.p!==null&&i<3?medals[i]:i+1)+'</div><div class="grow"><div class="name" style="margin:0">'+esc(r.a.name)+'</div><div class="mut">'+r.s.C+' ✅ &nbsp;'+r.s.I+' 🟡 &nbsp;'+r.s.F+' ❌ &nbsp;'+r.s.P+' 🏆'+(r.s.S?' &nbsp;'+r.s.S+' 🤒':'')+(r.bm!==null?' &nbsp;Borg '+r.bm.toFixed(1).replace('.',','):'')+'</div>'+(r.p!==null?'<div class="bar"><i style="width:'+r.p+'%"></i></div>':'')+'</div><div class="pct">'+fp(r.p)+'</div></div>';
+        h+='<div class="rk" style="cursor:pointer" onclick="openAthlete(\''+r.a.id+'\')"><div class="pos">'+(r.p!==null&&i<3?medals[i]:i+1)+'</div><div class="grow"><div class="name" style="margin:0">'+esc(r.a.name)+(r.a.b?' <span class="mut" style="font-weight:400">· '+catOf(r.a.b)+'</span>':'')+'</div><div class="mut">'+r.s.C+' ✅ &nbsp;'+r.s.I+' 🟡 &nbsp;'+r.s.F+' ❌ &nbsp;'+r.s.P+' 🏆'+(r.s.S?' &nbsp;'+r.s.S+' 🤒':'')+(r.bm!==null?' &nbsp;Borg '+r.bm.toFixed(1).replace('.',','):'')+'</div>'+(r.p!==null?'<div class="bar"><i style="width:'+r.p+'%"></i></div>':'')+'</div><div class="pct">'+fp(r.p)+'</div></div>';
       });
       h+='</div><div class="mut">Completo vale 100%, incompleto 50% e falta 0%. Descanso, feriado, competição e doença/lesão não entram na conta.</div>';
     }
@@ -434,13 +445,14 @@ function render(){
   if(tab==='provas')h+=pTab();
   if(tab==='atleta')h+=athleteView();
   if(tab==='atletas'){
-    h+='<div class="card row"><input id="nm" placeholder="Nome do atleta" onkeydown="if(event.key===\'Enter\')addAthlete()"><button class="btn" onclick="addAthlete()">Adicionar</button></div>';
-    if(!S.a.length)h+='<div class="mut">Digite o nome e toque em Adicionar.</div>';
-    S.a.forEach(function(a){h+='<div class="card row"><div class="grow name" style="margin:0">'+esc(a.name)+'</div><button class="btn ghost" onclick="openAthlete(\''+a.id+'\')">Histórico</button><button class="btn ghost" onclick="delAthlete(\''+a.id+'\')">Remover</button></div>'});
+    if(EA){h+='<div class="card"><div class="name">Editar atleta</div><input value="'+esc(EA.n)+'" oninput="EA.n=this.value"><div class="mut" style="margin:8px 0 4px">Data de nascimento</div><input type="date" value="'+EA.b+'" onchange="EA.b=this.value"><div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="EA=null;render()">Cancelar</button><button class="btn" onclick="saveA()">Salvar</button></div></div>'}
+    else{h+='<div class="card"><input id="nm" placeholder="Nome do atleta" onkeydown="if(event.key===\'Enter\')addAthlete()"><div class="mut" style="margin:8px 0 4px">Data de nascimento (define a categoria)</div><input id="nb" type="date"><button class="btn" style="width:100%;margin-top:10px" onclick="addAthlete()">Adicionar atleta</button></div>'}
+    if(!S.a.length)h+='<div class="mut">Cadastre seus atletas acima.</div>';
+    S.a.forEach(function(a){h+='<div class="card"><div class="name" style="margin:0">'+esc(a.name)+'</div><div class="mut">'+(a.b?catTxt(a.b)+' · nasc. '+dbr(a.b):'Sem data de nascimento. Toque em Editar para informar.')+'</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"><button class="btn ghost" onclick="openAthlete(\''+a.id+'\')">Histórico</button><button class="btn ghost" onclick="editA(\''+a.id+'\')">Editar</button><button class="btn ghost" onclick="delAthlete(\''+a.id+'\')">Remover</button></div></div>'});
     h+='<div class="card" style="margin-top:18px"><div class="name">Backup</div><div class="mut" style="margin-bottom:8px">Seus dados ficam só neste aparelho. Copie o backup de vez em quando e guarde em Notas.</div><button class="btn" onclick="copyBk()">Copiar backup</button><div id="msg" class="mut" style="margin-top:8px"></div>';
     h+='<textarea id="rs" rows="3" style="margin-top:12px" placeholder="Para restaurar, cole o backup aqui"></textarea><div style="margin-top:8px"><button class="btn ghost" onclick="restore()">Restaurar</button></div></div>';
   }
-  document.getElementById('main').innerHTML=h;
+  var tp=tipFor();document.getElementById('main').innerHTML=(tp?'<div class="mut" style="margin:-4px 0 12px">'+tp+'</div>':'')+h;
 }
 function copyBk(){var t=JSON.stringify(S),m=document.getElementById('msg');
   function fb(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');m.textContent='Backup copiado.'}catch(e){m.textContent='Não foi possível copiar.'}ta.remove()}
