@@ -39,7 +39,9 @@ textarea{min-height:0}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)}
 select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237b83b5' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
 .row{display:flex;gap:8px;align-items:center}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.g2>div{min-width:0}
+input[type=date],input[type=month]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none;text-align:left}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .grow{flex:1;min-width:0}
 .btn{min-height:44px;padding:10px 14px;border:0;background:var(--ac);color:var(--acfg);border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
@@ -697,7 +699,7 @@ function render(){
       if(heads){var mg=g.list.filter(function(a){return dr[a.id]}).length;h+='<div class="gh"><button class="gt" onclick="togG(\''+g.k+'\')"><span class="arw">'+(colG[g.k]?'▸':'▾')+'</span>'+GRN[g.k]+'<span class="cnt">'+mg+'/'+g.list.length+'</span></button><button class="pill" onclick="markAll(\'C\',\''+g.k+'\')">✅ Marcar restantes</button></div>';if(colG[g.k])return}
       g.list.forEach(function(a){
         var cur=dr[a.id];
-        h+='<div class="card"><div class="ah" onclick="openAthlete(\''+a.id+'\')"><div class="av '+g.k+'">'+ini(a.name)+'</div><div class="grow"><div class="an">'+esc(a.name)+(AL[a.id]?' <button class="al" aria-label="Atenção" onclick="event.stopPropagation();alOpen=alOpen===\''+a.id+'\'?null:\''+a.id+'\';render()">!</button>':'')+'</div>'+(AL[a.id]&&alOpen===a.id?'<div class="almsg">'+AL[a.id].map(esc).join('<br>')+'</div>':'')+(chips(a,yrC)?'<div>'+chips(a,yrC)+'</div>':'')+'</div><span class="mut">›</span></div><div class="sym">'+KEYS.map(function(k){return '<button data-k="'+k+'" class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
+        h+='<div class="card"><div class="ah" style="cursor:default"><div class="av '+g.k+'">'+ini(a.name)+'</div><div class="grow"><div class="an">'+esc(a.name)+(AL[a.id]?' <button class="al" aria-label="Atenção" onclick="event.stopPropagation();alOpen=alOpen===\''+a.id+'\'?null:\''+a.id+'\';render()">!</button>':'')+'</div>'+(AL[a.id]&&alOpen===a.id?'<div class="almsg">'+AL[a.id].map(esc).join('<br>')+'</div>':'')+(chips(a,yrC)?'<div>'+chips(a,yrC)+'</div>':'')+'</div><button class="pill" aria-label="Ver página de '+esc(a.name)+'" onclick="openAthlete(\''+a.id+'\')">Ver</button></div><div class="sym">'+KEYS.map(function(k){return '<button data-k="'+k+'" class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
       })});
   }
   if(tab==='tabela'){
