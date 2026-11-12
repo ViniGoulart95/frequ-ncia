@@ -540,7 +540,7 @@ function render(){
     h+=fhead();
     var my=+mon.slice(0,4),nd=new Date(my,+mon.slice(5,7),0).getDate();
     h+='<div class="mnav"><button class="ic" onclick="shiftMon(-1)" aria-label="Mês anterior">‹</button><label class="dl"><b>'+cap(new Date(my,+mon.slice(5,7)-1,1).toLocaleDateString('pt-BR',{month:'long'}))+'</b><span>'+my+'</span><input type="month" value="'+mon+'" onchange="if(this.value){mon=this.value;render()}"></label><button class="ic" onclick="shiftMon(1)" aria-label="Próximo mês">›</button></div>';
-    h+=filtBar('pdfTable()');
+    h+=filtBar('');
     if(!S.a.length)h+='<div class="card mut">Cadastre atletas na aba “Atletas” para ver a tabela.</div>';
     else{
       var st=fsort(stats(function(dt){return dt.slice(0,7)===mon}),my),lg=null;
@@ -586,7 +586,7 @@ function render(){
   if(tab==='rank'){
     h+=fhead();
     h+='<div class="row" style="margin-bottom:12px"><select onchange="per=this.value;render()" style="flex:2">'+perOpts()+'</select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div>';
-    h+=filtBar('pdfRank()');
+    h+=filtBar('');
     var rows=rankRows();
     if(!rows.length)h+='<div class="card mut">Nenhum atleta para mostrar. Cadastre atletas, registre treinos ou mude o filtro.</div>';
     else{h+='<div class="card" style="padding:2px 14px">';
@@ -808,9 +808,9 @@ function relatTab(){
   var ws=weekStart(rw),we=pd(ws);we.setDate(we.getDate()+6);
   var h='<div class="card"><div class="name">Período</div><div class="row"><select onchange="per=this.value;render()" style="flex:2">'+perOpts()+'</select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div><div class="mut" style="margin-top:8px">Vale para os relatórios de frequência, de esforço e de competições.</div></div>';
   h+=filtBar('');
-  h+='<div class="card"><div class="name">📊 Frequência</div><div class="mut" style="margin-bottom:10px">Ranking de toda a equipe no período escolhido (ano ou trimestre). A tabela do mês fica na aba Frequência.</div><button class="btn" style="width:100%" onclick="pdfRank()">PDF da equipe: '+perLabel()+'</button></div>';
+  h+='<div class="card"><div class="name">📊 Frequência</div><div class="mut" style="margin-bottom:10px">Ranking de toda a equipe no período escolhido (ano ou trimestre).</div><button class="btn" style="width:100%" onclick="pdfRank()">PDF do ranking: '+perLabel()+'</button><div class="mut" style="margin:14px 0 6px">Tabela dia a dia de um mês: <b>'+monLabel()+'</b></div><div class="row"><input type="month" value="'+mon+'" onchange="if(this.value){mon=this.value;render()}" style="flex:1;min-width:0"><button class="btn ghost" style="white-space:nowrap" onclick="pdfTable()">PDF do mês</button></div></div>';
   h+='<div class="card"><div class="name">💪 Esforço (Borg)</div><div class="mut" style="margin-bottom:10px">Equipe no período: média, mínimo e máximo de cada atleta e a média de cada mês.</div><button class="btn" style="width:100%" onclick="pdfBorgTeam()">PDF da equipe: '+perLabel()+'</button>';
-  h+='<div class="mut" style="margin:14px 0 6px">Semana (segunda a domingo): '+dbr(ws).slice(0,5)+' a '+dbr(ds(we)).slice(0,5)+'</div><div class="row"><input type="date" value="'+rw+'" onchange="rw=this.value||rw;render()" style="flex:1"><button class="btn ghost" onclick="pdfBorgWeek()">PDF da semana</button></div></div>';
+  h+='<div class="mut" style="margin:14px 0 6px">Semana (segunda a domingo): '+dbr(ws).slice(0,5)+' a '+dbr(ds(we)).slice(0,5)+'</div><div class="row"><input type="date" value="'+rw+'" onchange="rw=this.value||rw;render()" style="flex:1;min-width:0"><button class="btn ghost" style="white-space:nowrap" onclick="pdfBorgWeek()">PDF da semana</button></div></div>';
   h+='<div class="card"><div class="name">👤 Um atleta</div><div class="mut" style="margin-bottom:10px">Frequência e esforço do período escolhido: resumo, gráficos do Borg por dia e por semana, e o histórico com observações.</div>'+(S.a.length?'<select onchange="rAth=this.value">'+S.a.map(function(a){return '<option value="'+a.id+'"'+(a.id===rAth?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</select><button class="btn" style="width:100%;margin-top:10px" onclick="pdfAthleteOf()">PDF do atleta: '+perLabel()+'</button>':'<div class="mut">Cadastre atletas primeiro.</div>')+'</div>';
   h+='<div class="card"><div class="name">🏁 Competições</div><div class="mut" style="margin-bottom:10px">Todas as competições do ano com tempos, parciais, melhores marcas e a lista de melhores marcas de cada atleta. Cada vez que você gera, já traz os resultados mais novos.</div><button class="btn" style="width:100%" onclick="pdfCompet()">PDF anual: '+year+'</button>';
   h+=evs.length?'<div class="mut" style="margin:14px 0 6px">Ou só uma competição:</div><select onchange="rEv=this.value">'+evs.map(function(e){return '<option value="'+e.id+'"'+(e.id===rEv?' selected':'')+'>'+esc(e.n)+' ('+dbr(e.d).slice(0,5)+')</option>'}).join('')+'</select><button class="btn ghost" style="width:100%;margin-top:10px" onclick="pdfCompet(rEv)">PDF da competição</button>':'<div class="mut" style="margin-top:10px">Nenhuma competição em '+year+'.</div>';
