@@ -79,7 +79,7 @@ function fp(p){return p===null?'-':p.toFixed(1).replace('.',',')+'%'}
 function cut(s,n){return s.length>n?s.slice(0,n-1)+'.':s}
 var tab='chamada',date=ds(new Date()),per='ano',year=new Date().getFullYear(),mon=date.slice(0,7),openId=null,viewId=null,backTab='atletas';
 var BL=['','Muito leve','Leve','Moderado','Um pouco forte','Forte','Forte','Muito forte','Muito forte','Quase máximo','Máximo'];
-var TABS=[['chamada','Chamada','✅'],['freq','Frequência','📊'],['provas','Resultados','🏁'],['atletas','Atletas','👥']];
+var TABS=[['chamada','Chamada','✅'],['freq','Frequência','📊'],['provas','Campeonatos','🏁'],['atletas','Atletas','👥']];
 
 function shift(n){var d=pd(date);d.setDate(d.getDate()+n);date=ds(d);render()}
 function setCode(id,k){var d=S.r[date]||(S.r[date]={});if(d[id]===k)delete d[id];else d[id]=k;if(!Object.keys(d).length)delete S.r[date];save();render()}
@@ -160,12 +160,14 @@ function passF(a,yr){
 function fsort(l,yr){return l.filter(function(r){return passF(r.a,yr)}).sort(function(x,y){return GO.indexOf(grpOf(x.a,yr))-GO.indexOf(grpOf(y.a,yr))||x.a.name.localeCompare(y.a.name,'pt-BR')})}
 function fopt(v,t){return '<option value="'+v+'"'+(fg===v?' selected':'')+'>'+t+'</option>'}
 function filtBar(){
-  return '<div class="card g2"><select onchange="fg=this.value;render()"><option value="todos">Todos os grupos</option><optgroup label="Grupos de treino">'+fopt('g1',GRN.g1)+fopt('g2',GRN.g2)+fopt('sem','Sem grupo')+'</optgroup><optgroup label="Categorias">'+CNAMES.map(function(c){return fopt('c:'+c,c)}).join('')+'</optgroup></select><select onchange="fs=this.value;render()"><option value="todos">Federados e pré-equipe</option><option value="fed"'+(fs==='fed'?' selected':'')+'>Só federados</option><option value="pre"'+(fs==='pre'?' selected':'')+'>Só pré-equipe</option></select></div>'}
+  return '<div class="card g2"><select onchange="fg=this.value;render()"><option value="todos">Todos os grupos</option><optgroup label="Grupos de treino">'+fopt('g1',GRN.g1)+fopt('g2',GRN.g2)+fopt('sem','Sem grupo')+'</optgroup><optgroup label="Categorias">'+CNAMES.map(function(c){return fopt('c:'+c,c)}).join('')+'</optgroup></select><select onchange="fs=this.value;render()"><option value="todos">Todos os atletas</option><option value="fed"'+(fs==='fed'?' selected':'')+'>Só federados</option><option value="pre"'+(fs==='pre'?' selected':'')+'>Só pré-equipe</option></select></div>'}
 function fhead(){return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(tab==='tabela'?'':' ghost')+'" onclick="tab=\'tabela\';render()">📅 Mês</button><button class="btn'+(tab==='rank'?'':' ghost')+'" onclick="tab=\'rank\';render()">🏆 Ranking</button></div>'+filtBar()}
+var colG={};try{colG=JSON.parse(localStorage.getItem('freq-natacao-ui')||'{}')||{}}catch(e){}
+function togG(k){colG[k]=!colG[k];try{localStorage.setItem('freq-natacao-ui',JSON.stringify(colG))}catch(e){}render()}
 var EA=null;
 function editA(id){var a=S.a.find(function(x){return x.id===id});EA={id:id,n:a.name,b:a.b||'',st:a.st||'fed',gr:a.gr||''};render();window.scrollTo(0,0)}
 function saveA(){if(!EA.n.trim())return alert('Informe o nome.');var a=S.a.find(function(x){return x.id===EA.id});a.name=EA.n.trim();a.b=EA.b||'';a.st=EA.st;a.gr=EA.gr;S.a.sort(function(x,y){return x.name.localeCompare(y.name,'pt-BR')});EA=null;save();render()}
-var TIPS={chamada:'Registre a presença do dia: toque no símbolo de cada atleta. Use “Esforço e observação” para anotar o Borg e como ele se sentiu.',tabela:'Mês: quadro com os atletas nas linhas e os dias nas colunas, com o % de frequência no final. Use os filtros para ver um grupo ou categoria.',rank:'Ranking: os mais assíduos do ano ou do trimestre. Filtre por grupo, categoria ou situação. Toque num nome para ver o atleta.',atletas:'Cadastre os atletas com data de nascimento: a categoria e o grupo de treino são calculados sozinhos, e você pode mudar o grupo de quem treina em outro. Pré-equipe não aparece nos resultados de competição.'};
+var TIPS={chamada:'Registre a presença do dia: toque no símbolo de cada atleta. Toque no nome do grupo (▾) para recolher ou abrir a lista. Use “Esforço e observação” para anotar o Borg e como ele se sentiu.',tabela:'Mês: quadro com os atletas nas linhas e os dias nas colunas, com o % de frequência no final. Use os filtros para ver um grupo ou categoria.',rank:'Ranking: os mais assíduos do ano ou do trimestre. Filtre por grupo, categoria ou situação. Toque num nome para ver o atleta.',atletas:'Cadastre os atletas com data de nascimento: a categoria e o grupo de treino são calculados sozinhos, e você pode mudar o grupo de quem treina em outro. Pré-equipe não aparece nos resultados de competição.'};
 function tipFor(){
   if(tab==='provas'){if(F||EF||pview==='evento')return '';return pview==='geral'?'Evolução do tempo final de um atleta ao longo do ano e as melhores marcas dele.':'Cada competição é um evento: abra um para lançar os tempos e as parciais dos atletas.'}
   return TIPS[tab]||''}
@@ -249,7 +251,7 @@ function pdfTable(){
 
 /* ---------- Provas ---------- */
 var STK=[['L','Livre',[50,100,200,400,800,1500]],['C','Costas',[50,100,200]],['P','Peito',[50,100,200]],['B','Borboleta',[50,100,200]],['M','Medley',[100,200,400]]];
-var F=null,EF=null,pfa='todos',openP={},pview='lista',curE=null,gA='',gE='',gP='25',lastA='',lastEv='L100';
+var gK='',F=null,EF=null,pfa='todos',openP={},pview='lista',curE=null,gA='',gE='',gP='25',lastA='',lastEv='L100';
 function migE(){S.e=S.e||[];var m={};S.p.forEach(function(r){if(r.e)return;var nm=r.c||'Competição sem nome',k=nm+'|'+r.pl,e=m[k];if(!e){e={id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:nm,d:r.d,d2:'',pl:r.pl};m[k]=e;S.e.push(e)}if(r.d<e.d)e.d=r.d;r.e=e.id})}
 function evDist(k){return Number(k.slice(1))}
 function evLabel(k){var n='';STK.forEach(function(s){if(s[0]===k[0])n=s[1]});return evDist(k)+'m '+n}
@@ -361,7 +363,7 @@ function pTab(){
   if(F)return pForm();
   if(pview==='evento'&&S.e.some(function(e){return e.id===curE}))return pEvent();
   if(pview!=='geral')pview='lista';
-  return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(pview==='lista'?'':' ghost')+'" onclick="pview=\'lista\';render()">Competições</button><button class="btn'+(pview==='geral'?'':' ghost')+'" onclick="pview=\'geral\';render()">Evolução</button></div>'+(pview==='geral'?pGeral():pHome())}
+  return '<div class="g2" style="margin-bottom:10px"><button class="btn'+(pview==='lista'?'':' ghost')+'" onclick="pview=\'lista\';render()">Eventos</button><button class="btn'+(pview==='geral'?'':' ghost')+'" onclick="pview=\'geral\';render()">Evolução</button></div>'+(pview==='geral'?pGeral():pHome())}
 function pHome(){
   var h='<button class="btn" style="width:100%;margin-bottom:10px" onclick="newE()">+ Adicionar evento</button>';
   if(!S.e.length)return h+'<div class="card mut">Nenhum evento ainda. Toque em “Adicionar evento” para cadastrar uma competição e depois lance os resultados dos atletas nela.</div>';
@@ -400,6 +402,7 @@ function pGeral(){
   var mine=S.p.filter(function(r){return r.a===gA}),evs=[];
   mine.forEach(function(r){if(evs.indexOf(r.ev)<0)evs.push(r.ev)});evs.sort(function(x,y){return evOrd(x)-evOrd(y)});
   if(evs.indexOf(gE)<0)gE=evs[0];
+  if(gK!==gA+'|'+gE){gK=gA+'|'+gE;var c25=mine.filter(function(r){return r.ev===gE&&r.pl==='25'}).length,c50=mine.filter(function(r){return r.ev===gE&&r.pl==='50'}).length;if(c25===0&&c50>0)gP='50';else if(c50===0&&c25>0)gP='25'}
   var h='<div class="card"><select onchange="gA=this.value;render()">'+withR.map(function(a){return '<option value="'+a.id+'"'+(gA===a.id?' selected':'')+'>'+esc(a.name)+'</option>'}).join('')+'</select>';
   h+='<div class="row" style="margin-top:8px"><select onchange="gE=this.value;render()" style="flex:2">'+evs.map(function(k){return '<option value="'+k+'"'+(gE===k?' selected':'')+'>'+evLabel(k)+'</option>'}).join('')+'</select><select onchange="gP=this.value;render()" style="flex:1"><option value="25"'+(gP==='25'?' selected':'')+'>25m</option><option value="50"'+(gP==='50'?' selected':'')+'>50m</option></select><input type="number" value="'+year+'" style="flex:1" onchange="year=+this.value||year;render()"></div></div>';
   var pts=mine.filter(function(r){return r.ev===gE&&r.pl===gP&&+r.d.slice(0,4)===year}).sort(function(x,y){return x.d<y.d?-1:x.d>y.d?1:0});
@@ -427,7 +430,7 @@ function render(){
     h+='</div></div><div class="leg">'+KEYS.map(function(k){return SYM[k][0]+' '+SYM[k][1]}).join(' &nbsp; ')+'</div>';
     if(!S.a.length)h+='<div class="card mut">Nenhum atleta ainda. Vá em “Atletas” e cadastre sua equipe.</div>';
     gl.forEach(function(g){
-      if(heads)h+='<div class="row" style="margin:16px 0 8px"><div class="grow" style="font-weight:700">'+GRN[g.k]+' <span class="mut">('+g.list.length+')</span></div><button class="btn ghost" style="padding:5px 9px;font-size:13px" onclick="markAll(\'C\',\''+g.k+'\')">✅ Marcar restantes</button></div>';
+      if(heads){var mg=g.list.filter(function(a){return dr[a.id]}).length;h+='<div class="row" style="margin:14px 0 8px;gap:6px"><button style="flex:1;text-align:left;background:none;border:0;color:inherit;font:inherit;font-weight:700;padding:8px 0" onclick="togG(\''+g.k+'\')">'+(colG[g.k]?'▸':'▾')+' '+GRN[g.k]+' <span class="mut" style="font-weight:400">('+mg+'/'+g.list.length+')</span></button><button class="btn ghost" style="padding:5px 9px;font-size:13px" onclick="markAll(\'C\',\''+g.k+'\')">✅ Marcar restantes</button></div>';if(colG[g.k])return}
       g.list.forEach(function(a){
       var cur=dr[a.id];
       h+='<div class="card"><div class="name" style="cursor:pointer" onclick="openAthlete(\''+a.id+'\')">'+esc(a.name)+(lbl(a,yrC)?' <span class="mut" style="font-weight:400">· '+lbl(a,yrC)+'</span>':'')+' <span class="mut">›</span></div><div class="sym">'+KEYS.map(function(k){return '<button class="'+(cur===k?'on':'')+'" aria-label="'+SYM[k][1]+'" onclick="setCode(\''+a.id+'\',\''+k+'\')">'+SYM[k][0]+'</button>'}).join('')+'</div>'+detPanel(a)+'</div>';
@@ -473,7 +476,7 @@ function render(){
   if(tab==='atleta')h+=athleteView();
   if(tab==='atletas'){
     var SEL=function(id,on,v,o){return '<select'+(id?' id="'+id+'"':'')+(on?' onchange="'+on+'"':'')+'>'+o.map(function(x){return '<option value="'+x[0]+'"'+(v===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select>'};
-    var OST=[['fed','Federado'],['pre','Pré-equipe']],OGR=[['','Automático (pela categoria)'],['g1',GRN.g1],['g2',GRN.g2]];
+    var OST=[['fed','Federado'],['pre','Pré-equipe']],OGR=[['','Automático'],['g1',GRN.g1],['g2',GRN.g2]];
     if(EA){h+='<div class="card"><div class="name">Editar atleta</div><input value="'+esc(EA.n)+'" oninput="EA.n=this.value"><div class="mut" style="margin:8px 0 4px">Data de nascimento</div><input type="date" value="'+EA.b+'" onchange="EA.b=this.value"><div class="g2" style="margin-top:8px"><div><div class="mut" style="margin-bottom:4px">Situação</div>'+SEL('','EA.st=this.value',EA.st,OST)+'</div><div><div class="mut" style="margin-bottom:4px">Grupo de treino</div>'+SEL('','EA.gr=this.value',EA.gr,OGR)+'</div></div><div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="EA=null;render()">Cancelar</button><button class="btn" onclick="saveA()">Salvar</button></div></div>'}
     else{h+='<div class="card"><input id="nm" placeholder="Nome do atleta" onkeydown="if(event.key===\'Enter\')addAthlete()"><div class="mut" style="margin:8px 0 4px">Data de nascimento (define a categoria)</div><input id="nb" type="date"><div class="g2" style="margin-top:8px"><div><div class="mut" style="margin-bottom:4px">Situação</div>'+SEL('nst','','fed',OST)+'</div><div><div class="mut" style="margin-bottom:4px">Grupo de treino</div>'+SEL('ngr','','',OGR)+'</div></div><button class="btn" style="width:100%;margin-top:10px" onclick="addAthlete()">Adicionar atleta</button></div>'}
     if(!S.a.length)h+='<div class="mut">Cadastre seus atletas acima.</div>';
