@@ -673,6 +673,9 @@ function syNovo(){var c=syParseCfg(document.getElementById('sycfg').value);
   syConnect(c,syRand())}
 function syEntrar(){var o=syDecode(document.getElementById('sycod').value);
   if(!o)return alert('Código de conexão inválido. Cole o código completo, que começa com FREQ1.');
+  if(S.a.length||S.p.length||Object.keys(S.r).length){
+    if(!confirm('Este aparelho já tem dados. Ao entrar na equipe eles serão SUBSTITUÍDOS pelos dados da equipe. Continuar?'))return;
+    S={a:[],r:{},n:{},p:[],e:[]};rawSave()}
   syConnect(o.cfg,o.team)}
 function syOff(){if(!confirm('Desconectar este aparelho da equipe? Os dados continuam aqui, mas deixam de sincronizar.'))return;
   if(typeof SYU==='function'){try{SYU()}catch(e){}}SYU=null;SY=null;try{localStorage.removeItem('freq-natacao-sync')}catch(e){}syStatus('');render()}
@@ -684,7 +687,7 @@ function syncCard(){
   var h='<div class="card"><div class="name">☁️ Sincronizar com outro técnico</div>';
   if(SY)return h+'<div class="mut" id="syncst">'+esc(SYS)+'</div><div class="mut" style="margin:10px 0">Quem tiver o código de conexão vê e edita os mesmos dados. Envie só para quem você confia.</div><div class="g2"><button class="btn" onclick="syCopy()">Copiar código</button><button class="btn dng" onclick="syOff()">Desconectar</button></div><div id="symsg" class="mut" style="margin-top:8px"></div></div>';
   if(syMode==='novo')return h+'<div class="mut" style="margin-bottom:8px">Cole aqui o texto “firebaseConfig” que o Firebase mostrou.</div><textarea id="sycfg" rows="6" placeholder="const firebaseConfig = { ... }"></textarea><div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="syMode=\'\';render()">Cancelar</button><button class="btn" onclick="syNovo()">Conectar</button></div></div>';
-  if(syMode==='entrar')return h+'<div class="mut" style="margin-bottom:8px">Cole aqui o código de conexão que o outro técnico enviou.</div><textarea id="sycod" rows="4" placeholder="FREQ1...."></textarea><div class="mut" style="margin-top:8px">Use um app vazio neste aparelho, para não duplicar atletas.</div><div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="syMode=\'\';render()">Cancelar</button><button class="btn" onclick="syEntrar()">Entrar</button></div></div>';
+  if(syMode==='entrar')return h+'<div class="mut" style="margin-bottom:8px">Cole aqui o código de conexão que o outro técnico enviou.</div><textarea id="sycod" rows="4" placeholder="FREQ1...."></textarea><div class="mut" style="margin-top:8px">Os dados que já estiverem neste aparelho serão substituídos pelos dados da equipe.</div><div class="g2" style="margin-top:10px"><button class="btn ghost" onclick="syMode=\'\';render()">Cancelar</button><button class="btn" onclick="syEntrar()">Entrar</button></div></div>';
   return h+'<div class="mut" style="margin-bottom:10px">Dois técnicos veem e editam os mesmos dados, mesmo sem internet na piscina. Quando a internet volta, tudo se junta.</div><div class="g2"><button class="btn" onclick="syMode=\'novo\';render()">Criar a equipe</button><button class="btn ghost" onclick="syMode=\'entrar\';render()">Tenho um código</button></div></div>'}
 var FBB='https://www.gstatic.com/firebasejs/'+FBV+'/';
 function syScript(u){return new Promise(function(ok,no){var e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=function(){no(new Error('script'))};document.head.appendChild(e)})}
